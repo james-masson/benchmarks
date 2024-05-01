@@ -145,4 +145,4 @@ done
 
 f_log "Results collected in: ${SCRIPT_DIR}/results/${TIMESTAMP}"
 
-# f_cleanup_k8s
+f_cleanup_k8s
