@@ -12,6 +12,7 @@ patches:
     target:
       kind: Pod
       name: aeron-benchmark-1
+
   # Local environment specific settings
   - target:
       kind: Pod
