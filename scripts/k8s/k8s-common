@@ -48,7 +48,26 @@ function f_wait_for_dns() {
   done
 
 }
+#####################################################################################
+# Construct JVM_OPTS with dynamic interface lookup
+function f_set_jvm_opts() {
 
+  # Look up the interface we're supposed to use.
+  if [[ "${POD_NAME}" == "aeron-benchmark-0" ]]
+  then
+    LOCAL_IP="$( host "${NODE0_ADDRESS}" | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' )"
+  elif [[ "${POD_NAME}" == "aeron-benchmark-1" ]]
+  then
+    LOCAL_IP="$( host "${NODE1_ADDRESS}" | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' )"
+  else
+    echo "Could not resolve IP for POD ${POD_NAME}"
+  fi
+
+  export JVM_OPTS="-Duk.co.real_logic.benchmarks.remote.output.directory=/dev/shm/results \
+-Duk.co.real_logic.benchmarks.aeron.remote.embedded.media.driver=false \
+-Duk.co.real_logic.benchmarks.aeron.remote.source.channel=aeron:udp?endpoint=${NODE1_ADDRESS:? Could not find NODE1_ADDRESS}:13000|interface=${LOCAL_IP}/32 \
+-Duk.co.real_logic.benchmarks.aeron.remote.destination.channel=aeron:udp?endpoint=${NODE0_ADDRESS:? Could not find NODE0_ADDRESS}:13001|interface=${LOCAL_IP}/32"
+}
 #####################################################################################
 # Things to run *before* a benchmark client runs
 function f_benchmark_pre(){
@@ -69,6 +88,8 @@ cd "${BENCHMARKS_PATH:? Please set BENCHMARKS_PATH}/scripts"
 
 # Verify we can get DNS records for the pods
 f_wait_for_dns
+# Set up our test variables
+f_set_jvm_opts
 
 echo '*******************************'
 echo "JVM_OPTS:"
