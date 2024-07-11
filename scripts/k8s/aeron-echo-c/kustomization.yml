@@ -1,0 +1,22 @@
+# This file contains the overrides for aeron-echo-dpdk test
+
+resources:
+  - ../base
+patches:
+  # Test specific config
+  - path: all-pods.yml
+    target:
+      kind: Pod
+  # Media driver specific config
+  - path: aeronmd-c.yml
+    target:
+      kind: Pod
+  # Settings for the benchmark
+  - path: echo-client.yml
+    target:
+      kind: Pod
+      name: aeron-benchmark-1
+  # Local environment specific settings
+  - target:
+      kind: Pod
+    path: settings.yml

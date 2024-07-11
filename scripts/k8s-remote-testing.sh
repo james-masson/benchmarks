@@ -9,7 +9,7 @@ function f_log() {
 
 function f_show_help() {
   f_log "Supported arguments are:"
-  echo "${0} (-n|--namespace '<namespace>' ) (-t|--test 'aeron-echo-dpdk|aeron-echo-java' ) (-i|--interface <ignored for DPDK> 'eth0')"
+  echo "${0} (-n|--namespace '<namespace>' ) (-t|--test 'aeron-echo-dpdk|aeron-echo-java|aeron-echo-c' ) (-i|--interface <ignored for DPDK> 'eth0')"
 }
 
 while [[ $# -gt 0 ]]
@@ -23,10 +23,10 @@ do
       ;;
     -t|--test)
       TEST_TO_RUN="${2}"
-      if [[ "${TEST_TO_RUN}" == "aeron-echo-dpdk" || "${TEST_TO_RUN}" == "aeron-echo-java"  ]]
+      if [[ "${TEST_TO_RUN}" == "aeron-echo-dpdk" || "${TEST_TO_RUN}" == "aeron-echo-java" || "${TEST_TO_RUN}" == "aeron-echo-c" ]]
       then true
       else
-        f_log "Error: only supported tests are 'aeron-echo-dpdk' or 'aeron-echo-java' at the moment"
+        f_log "Error: only supported tests are 'aeron-echo-dpdk' or 'aeron-echo-java' or 'aeron-echo-c' at the moment"
         exit 1
       fi
       shift
@@ -87,6 +87,10 @@ elif [[ "${TEST_TO_RUN}" =~ .*-java$ ]]
   then
   AB0_MD_IP="$(kubectl -n "${K8S_NAMESPACE}" exec aeron-benchmark-0  -c aeronmd-java -- bash -c "ip -4 -json addr show ${INTERFACE} |   jq -r '.[] | .addr_info[] | select(.family == \"inet\") | .local'")"
   AB1_MD_IP="$(kubectl -n "${K8S_NAMESPACE}" exec aeron-benchmark-1  -c aeronmd-java -- bash -c "ip -4 -json addr show ${INTERFACE} |   jq -r '.[] | .addr_info[] | select(.family == \"inet\") | .local'")"
+elif [[ "${TEST_TO_RUN}" =~ .*-c$ ]]
+  then
+  AB0_MD_IP="$(kubectl -n "${K8S_NAMESPACE}" exec aeron-benchmark-0  -c aeronmd-c -- bash -c "ip -4 -json addr show ${INTERFACE} |   jq -r '.[] | .addr_info[] | select(.family == \"inet\") | .local'")"
+  AB1_MD_IP="$(kubectl -n "${K8S_NAMESPACE}" exec aeron-benchmark-1  -c aeronmd-c -- bash -c "ip -4 -json addr show ${INTERFACE} |   jq -r '.[] | .addr_info[] | select(.family == \"inet\") | .local'")"
 else
   f_log "Media driver config not found"
   exit 1
