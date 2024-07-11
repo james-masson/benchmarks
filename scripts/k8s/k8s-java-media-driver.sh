@@ -7,7 +7,7 @@ set -emo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 source "${DIR}/k8s-common"
 
-Sets our own bash script affinity to the first core
+#Sets our own bash script affinity to the first core
 taskset -cp "${CGROUP_CPUSETS[0]}" $$
 
 # Write the customised benchmark properties
