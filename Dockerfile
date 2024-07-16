@@ -1,5 +1,5 @@
 FROM ubuntu:noble AS builder
-ARG AERON_VERSION=1.44.1
+ARG AERON_VERSION_SELECTOR="--aeron-git-tag 1.44.1"
 ENV BENCHMARKS_PATH=/opt/aeron-benchmarks
 
 RUN apt-get update -y &&\
@@ -19,14 +19,15 @@ ENV PATH=${PATH};/opt/gradle-8.8/bin
 COPY . /tmp/benchmark-build
 WORKDIR /tmp/benchmark-build
 
-RUN ./cppbuild/cppbuild --aeron-git-tag ${AERON_VERSION} &&\
+RUN ./cppbuild/cppbuild ${AERON_VERSION_SELECTOR} &&\
   cd cppbuild/Release/aeron-prefix/src/aeron &&\
   ./cppbuild/cppbuild --package --no-tests
 
 RUN --mount=type=cache,target=/root/.gradle \
   --mount=type=cache,target=/home/gradle/.gradle \
   --mount=type=cache,target=/tmp/benchmark-build/.gradle \
-  ./gradlew --no-daemon -i clean deployTar -Paeron.cdriver.package=cppbuild/Release/aeron-prefix/src/aeron/cppbuild/Release/aeron-${AERON_VERSION}-Linux.tar.gz
+  export CDRIVER_PACKAGE="$(find cppbuild/Release/aeron-prefix/src/aeron/cppbuild/Release -maxdepth 1 -name 'aeron-*-Linux.tar.gz')" &&\
+  ./gradlew --no-daemon -i clean deployTar -Paeron.cdriver.package="${CDRIVER_PACKAGE}"
 
 RUN mkdir -p ${BENCHMARKS_PATH} &&\
   tar -C ${BENCHMARKS_PATH} -xf /tmp/benchmark-build/build/distributions/benchmarks.tar
